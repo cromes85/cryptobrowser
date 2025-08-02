@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cours Crypto (XRP, VELO, NANO)</title>
+    <style>
+        body {background:#fff;color:#000;font-family:monospace;font-size:18px;padding:20px;}
+        pre {white-space: pre-line;}
+        #lastUpdate {margin-top:20px;font-size:14px;color:#333;}
+    </style>
+</head>
+<body>
+    <h2>Cours Crypto (auto-refresh)</h2>
+    <pre id="cryptoData">Chargement...</pre>
+    <div id="lastUpdate">Dernière synchro : en attente...</div>
+
+    <script>
+        function getCryptoPrices() {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "https://api.coingecko.com/api/v3/simple/price?ids=ripple,velodrome-finance,nano&vs_currencies=usd", true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        document.getElementById("cryptoData").innerText =
+                            "XRP  : " + data.ripple.usd + " USD\n" +
+                            "VELO : " + (data["velodrome-finance"] ? data["velodrome-finance"].usd : "N/A") + " USD\n" +
+                            "NANO : " + data.nano.usd + " USD";
+                        
+                        // Ajout de la date et heure de dernière synchro
+                        var now = new Date();
+                        var formattedTime = now.toLocaleDateString() + " " + now.toLocaleTimeString();
+                        document.getElementById("lastUpdate").innerText = "Dernière synchro : " + formattedTime;
+                    } catch(e){
+                        document.getElementById("cryptoData").innerText = "Erreur de lecture des données";
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        getCryptoPrices();
+        setInterval(getCryptoPrices, 30000); // Actualise toutes les 30 secondes
+    </script>
+</body>
+</html>
