@@ -11,18 +11,27 @@
         font-family: Arial, sans-serif;
         text-align: center;
         padding-top: 50px;
+        margin: 0;
     }
-    #cryptoData {
+    h1 {
+        font-size: 40px;
+        margin-bottom: 20px;
+    }
+    .cryptoBlock {
         font-size: 70px;
         font-weight: bold;
-        margin-top: 30px;
-        line-height: 1.8em;
-        display: inline-block;
-        text-align: left;
+        margin: 20px 0;
+        line-height: 1.2em;
+    }
+    .previous {
+        font-size: 20px;
+        color: gray;
+        margin-top: 5px;
+        font-weight: normal;
     }
     #lastUpdate {
-        margin-top: 20px;
-        font-size: 18px;
+        margin-top: 30px;
+        font-size: 20px;
         color: gray;
         display: block;
     }
@@ -30,11 +39,12 @@
         position: fixed;
         bottom: 10px;
         right: 10px;
-        padding: 10px;
+        padding: 12px 20px;
         background-color: #ccc;
         border: none;
         cursor: pointer;
         border-radius: 5px;
+        font-size: 16px;
     }
 </style>
 </head>
@@ -48,6 +58,9 @@
 let useFallback = false;
 let failCount = 0;
 const maxFails = 10;
+
+// Historique des valeurs précédentes
+let previousPrices = { XRP: null, VELO: null, NANO: null };
 
 function fetchCoinranking() {
     const apiUrl = "https://api.coinranking.com/v2/coins?symbols=XRP,VELO,NANO";
@@ -87,14 +100,28 @@ function fetchCoinGecko() {
 function updateCryptoPrices() {
     (useFallback ? fetchCoinGecko() : fetchCoinranking())
     .then(prices => {
-        document.getElementById("cryptoData").innerText =
-            `XRP   : ${prices.XRP} USD\n` +
-            `VELO  : ${prices.VELO} USD\n` +
-            `NANO  : ${prices.NANO} USD`;
+        let html = "";
+
+        for (let key in prices) {
+            html += `<div class="cryptoBlock">${key} : ${prices[key]} USD`;
+            if (previousPrices[key] !== null) {
+                html += `<div class="previous">Précédent : ${previousPrices[key]} USD</div>`;
+            }
+            html += `</div>`;
+
+            // Mise à jour de l'historique
+            previousPrices[key] = prices[key];
+        }
+
+        document.getElementById("cryptoData").innerHTML = html;
         document.getElementById("lastUpdate").innerText =
             "Dernière synchro : " + new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString();
-        failCount = 0; // reset compteur si succès
-        if (useFallback) console.log("CoinGecko utilisé (fallback).");
+
+        if (useFallback && failCount === 0) {
+            console.log("Retour à CoinRanking : service à nouveau fonctionnel.");
+            useFallback = false;
+        }
+        failCount = 0;
     })
     .catch(err => {
         console.error("Erreur API:", err);
@@ -114,7 +141,6 @@ function toggleMode() {
         document.body.style.color === "black" ? "white" : "black";
 }
 
-// Rafraîchissement toutes les 30 secondes
 setInterval(updateCryptoPrices, 30000);
 updateCryptoPrices();
 </script>
