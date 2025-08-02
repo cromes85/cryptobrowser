@@ -33,7 +33,6 @@
             font-size:16px;
             color:#333;
         }
-        /* Bouton mode */
         #modeBtn {
             position: fixed;
             bottom: 10px;
@@ -45,7 +44,6 @@
             cursor: pointer;
             font-size: 14px;
         }
-        /* Mode bourse */
         .bourse {
             background:#000;
             color:#00FF00;
@@ -68,26 +66,24 @@
 
     <script>
         function getCryptoPrices() {
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", "https://api.coingecko.com/api/v3/simple/price?ids=ripple,velo,nano&vs_currencies=usd", true);
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    try {
-                        var data = JSON.parse(xhr.responseText);
-                        document.getElementById("cryptoData").innerText =
-                            "XRP  : " + data.ripple.usd + " USD\n" +
-                            "VELO : " + (data["velo"] ? data["velo"].usd : "N/A") + " USD\n" +
-                            "NANO : " + data.nano.usd + " USD";
-                        
-                        var now = new Date();
-                        var formattedTime = now.toLocaleDateString() + " " + now.toLocaleTimeString();
-                        document.getElementById("lastUpdate").innerText = "Dernière synchro : " + formattedTime;
-                    } catch(e){
-                        document.getElementById("cryptoData").innerText = "Erreur de lecture des données";
-                    }
-                }
-            };
-            xhr.send();
+            const apiUrl = "https://api.coingecko.com/api/v3/simple/price?ids=ripple,velo,nano&vs_currencies=usd";
+            const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(apiUrl);
+
+            fetch(proxyUrl)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("cryptoData").innerText =
+                        "XRP  : " + data.ripple.usd + " USD\n" +
+                        "VELO : " + (data.velo ? data.velo.usd : "N/A") + " USD\n" +
+                        "NANO : " + data.nano.usd + " USD";
+
+                    const now = new Date();
+                    document.getElementById("lastUpdate").innerText =
+                        "Dernière synchro : " + now.toLocaleDateString() + " " + now.toLocaleTimeString();
+                })
+                .catch(() => {
+                    document.getElementById("cryptoData").innerText = "Erreur de récupération des données";
+                });
         }
 
         function toggleMode() {
@@ -95,7 +91,7 @@
         }
 
         getCryptoPrices();
-        setInterval(getCryptoPrices, 15000);
+        setInterval(getCryptoPrices, 30000); // toutes les 30s pour éviter le 429
     </script>
 </body>
 </html>
