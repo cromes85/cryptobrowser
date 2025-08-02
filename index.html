@@ -16,28 +16,71 @@
             justify-content:center;
             align-items:center;
             text-align:center;
+            transition: background 0.3s, color 0.3s;
         }
         h2 {
             font-size:40px;
             margin-bottom:20px;
         }
-        pre {
-            white-space: pre-line;
+        table {
             font-size:70px;
             font-weight:bold;
-            line-height: 1.5;
+            border-collapse: collapse;
+        }
+        td {
+            padding:10px 30px;
         }
         #lastUpdate {
             margin-top:30px;
-            font-size:16px;
+            font-size:18px;
             color:#333;
+            transition: color 0.3s;
+        }
+        #toggleMode {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+            transition: background 0.3s;
+        }
+        #toggleMode:hover {
+            background-color: #0056b3;
+        }
+        /* Mode bourse */
+        body.bourse-mode {
+            background:#000;
+            color:#0f0;
+        }
+        body.bourse-mode #lastUpdate {
+            color:#0f0;
+        }
+        body.bourse-mode #toggleMode {
+            background-color:#333;
+            color:#0f0;
+            border:1px solid #0f0;
+        }
+        body.bourse-mode h2 {
+            color:#0f0;
         }
     </style>
 </head>
 <body>
     <h2>Cours Crypto</h2>
-    <pre id="cryptoData">Chargement...</pre>
+    <table>
+        <tr><td>XRP</td><td id="xrp">--</td><td>USD</td></tr>
+        <tr><td>VELO</td><td id="velo">--</td><td>USD</td></tr>
+        <tr><td>NANO</td><td id="nano">--</td><td>USD</td></tr>
+    </table>
     <div id="lastUpdate">Dernière synchro : en attente...</div>
+
+    <button id="toggleMode" onclick="toggleDisplayMode()">Mode Bourse</button>
 
     <script>
         function getCryptoPrices() {
@@ -47,20 +90,29 @@
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     try {
                         var data = JSON.parse(xhr.responseText);
-                        document.getElementById("cryptoData").innerText =
-                            "XRP  : " + data.ripple.usd + " USD\n" +
-                            "VELO : " + (data["velodrome-finance"] ? data["velodrome-finance"].usd : "N/A") + " USD\n" +
-                            "NANO : " + data.nano.usd + " USD";
-                        
+                        document.getElementById("xrp").innerText = data.ripple.usd;
+                        document.getElementById("velo").innerText = data["velodrome-finance"] ? data["velodrome-finance"].usd : "N/A";
+                        document.getElementById("nano").innerText = data.nano.usd;
+
                         var now = new Date();
                         var formattedTime = now.toLocaleDateString() + " " + now.toLocaleTimeString();
                         document.getElementById("lastUpdate").innerText = "Dernière synchro : " + formattedTime;
                     } catch(e){
-                        document.getElementById("cryptoData").innerText = "Erreur de lecture des données";
+                        document.getElementById("lastUpdate").innerText = "Erreur de lecture des données";
                     }
                 }
             };
             xhr.send();
+        }
+
+        function toggleDisplayMode() {
+            document.body.classList.toggle("bourse-mode");
+            let btn = document.getElementById("toggleMode");
+            if (document.body.classList.contains("bourse-mode")) {
+                btn.innerText = "Mode Clair";
+            } else {
+                btn.innerText = "Mode Bourse";
+            }
         }
 
         getCryptoPrices();
