@@ -16,6 +16,7 @@
             justify-content:center;
             align-items:center;
             text-align:center;
+            transition: all 0.3s ease;
         }
         h2 {
             font-size:40px;
@@ -32,24 +33,50 @@
             font-size:16px;
             color:#333;
         }
+        /* Bouton mode */
+        #modeBtn {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            padding: 10px 15px;
+            background-color: #ccc;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        /* Mode bourse */
+        .bourse {
+            background:#000;
+            color:#00FF00;
+        }
+        .bourse #lastUpdate {
+            color:#0f0;
+        }
+        .bourse #modeBtn {
+            background-color: #222;
+            color:#0f0;
+            border:1px solid #0f0;
+        }
     </style>
 </head>
 <body>
     <h2>Cours Crypto</h2>
     <pre id="cryptoData">Chargement...</pre>
     <div id="lastUpdate">Dernière synchro : en attente...</div>
+    <button id="modeBtn" onclick="toggleMode()">Mode Bourse</button>
 
     <script>
         function getCryptoPrices() {
             var xhr = new XMLHttpRequest();
-            xhr.open("GET", "https://api.coingecko.com/api/v3/simple/price?ids=ripple,velodrome-finance,nano&vs_currencies=usd", true);
+            xhr.open("GET", "https://api.coingecko.com/api/v3/simple/price?ids=ripple,velo,nano&vs_currencies=usd", true);
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     try {
                         var data = JSON.parse(xhr.responseText);
                         document.getElementById("cryptoData").innerText =
                             "XRP  : " + data.ripple.usd + " USD\n" +
-                            "VELO : " + (data["velodrome-finance"] ? data["velodrome-finance"].usd : "N/A") + " USD\n" +
+                            "VELO : " + (data["velo"] ? data["velo"].usd : "N/A") + " USD\n" +
                             "NANO : " + data.nano.usd + " USD";
                         
                         var now = new Date();
@@ -61,6 +88,10 @@
                 }
             };
             xhr.send();
+        }
+
+        function toggleMode() {
+            document.body.classList.toggle("bourse");
         }
 
         getCryptoPrices();
