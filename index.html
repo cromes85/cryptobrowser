@@ -24,9 +24,9 @@
         }
         pre {
             white-space: pre-line;
-            font-size:45px;
+            font-size:30px;
             font-weight:bold;
-            line-height: 1.5;
+            line-height: 1.8;
         }
         #lastUpdate {
             margin-top:30px;
@@ -67,21 +67,32 @@
     <script>
         function getCryptoPrices() {
             const apiUrl = "https://api.coingecko.com/api/v3/simple/price?ids=ripple,velo,nano&vs_currencies=usd,eur";
-            const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(apiUrl);
+            const proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(apiUrl);
 
             fetch(proxyUrl)
                 .then(response => response.json())
                 .then(data => {
+                    const prices = JSON.parse(data.contents);
+
+                    // Récupération avec valeurs par défaut
+                    const xrpUsd = prices.ripple?.usd ?? "N/A";
+                    const xrpEur = prices.ripple?.eur ?? "N/A";
+                    const veloUsd = prices.velo?.usd ?? "N/A";
+                    const veloEur = prices.velo?.eur ?? "N/A";
+                    const nanoUsd = prices.nano?.usd ?? "N/A";
+                    const nanoEur = prices.nano?.eur ?? "N/A";
+
                     document.getElementById("cryptoData").innerText =
-                        "XRP  : " + data.ripple.usd + " USD  |  " + data.ripple.eur + " EUR\n" +
-                        "VELO : " + (data.velo ? data.velo.usd : "N/A") + " USD  |  " + (data.velo ? data.velo.eur : "N/A") + " EUR\n" +
-                        "NANO : " + data.nano.usd + " USD  |  " + data.nano.eur + " EUR";
+                        `XRP   : ${xrpUsd} USD | ${xrpEur} EUR\n` +
+                        `VELO  : ${veloUsd} USD | ${veloEur} EUR\n` +
+                        `NANO  : ${nanoUsd} USD | ${nanoEur} EUR`;
 
                     const now = new Date();
-                    document.getElementById("lastUpdate").innerText =
-                        "Dernière synchro : " + now.toLocaleDateString() + " " + now.toLocaleTimeString();
+                    const formattedTime = now.toLocaleDateString() + " " + now.toLocaleTimeString();
+                    document.getElementById("lastUpdate").innerText = "Dernière synchro : " + formattedTime;
                 })
-                .catch(() => {
+                .catch(error => {
+                    console.error("Erreur API:", error);
                     document.getElementById("cryptoData").innerText = "Erreur de récupération des données";
                 });
         }
@@ -91,7 +102,7 @@
         }
 
         getCryptoPrices();
-        setInterval(getCryptoPrices, 30000); // toutes les 30s pour éviter le 429
+        setInterval(getCryptoPrices, 15000);
     </script>
 </body>
 </html>
