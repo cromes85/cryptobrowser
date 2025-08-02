@@ -5,13 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cours Crypto (XRP, VELO, NANO)</title>
     <style>
-        body {background:#fff;color:#000;font-family:monospace;font-size:18px;padding:20px;}
-        pre {white-space: pre-line;}
-        #lastUpdate {margin-top:20px;font-size:14px;color:#333;}
+        body {
+            background:#fff;
+            color:#000;
+            font-family:monospace;
+            margin:0;
+            height:100vh;
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+            align-items:center;
+            text-align:center;
+        }
+        h2 {
+            font-size:28px;
+            margin-bottom:20px;
+        }
+        pre {
+            white-space: pre-line;
+            font-size:32px;
+            font-weight:bold;
+            line-height: 1.5;
+        }
+        #lastUpdate {
+            margin-top:25px;
+            font-size:16px;
+            color:#333;
+        }
     </style>
 </head>
 <body>
-    <h2>Cours Crypto (auto-refresh)</h2>
+    <h2>Cours Crypto</h2>
     <pre id="cryptoData">Chargement...</pre>
     <div id="lastUpdate">Dernière synchro : en attente...</div>
 
@@ -28,7 +52,6 @@
                             "VELO : " + (data["velodrome-finance"] ? data["velodrome-finance"].usd : "N/A") + " USD\n" +
                             "NANO : " + data.nano.usd + " USD";
                         
-                        // Ajout de la date et heure de dernière synchro
                         var now = new Date();
                         var formattedTime = now.toLocaleDateString() + " " + now.toLocaleTimeString();
                         document.getElementById("lastUpdate").innerText = "Dernière synchro : " + formattedTime;
@@ -41,7 +64,7 @@
         }
 
         getCryptoPrices();
-        setInterval(getCryptoPrices, 10000); // Actualise toutes les 30 secondes
+        setInterval(getCryptoPrices, 10000);
     </script>
 </body>
 </html>
