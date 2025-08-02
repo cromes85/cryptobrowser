@@ -24,7 +24,7 @@
         }
         pre {
             white-space: pre-line;
-            font-size:70px;
+            font-size:45px;
             font-weight:bold;
             line-height: 1.5;
         }
@@ -62,26 +62,24 @@
     <h2>Cours Crypto</h2>
     <pre id="cryptoData">Chargement...</pre>
     <div id="lastUpdate">Dernière synchro : en attente...</div>
-    <div>V12</div>
     <button id="modeBtn" onclick="toggleMode()">Mode Bourse</button>
 
     <script>
         function getCryptoPrices() {
-            const apiUrl = "https://api.coingecko.com/api/v3/simple/price?ids=ripple,velo,nano&vs_currencies=usd";
+            const apiUrl = "https://api.coingecko.com/api/v3/simple/price?ids=ripple,velo,nano&vs_currencies=usd,eur";
             const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(apiUrl);
 
             fetch(proxyUrl)
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById("cryptoData").innerText =
-                        "XRP  : " + data.ripple.usd + " USD\n" +
-                        "VELO : " + (data.velo ? data.velo.usd : "N/A") + " USD\n" +
-                        "NANO : " + data.nano.usd + " USD";
+                        "XRP  : " + data.ripple.usd + " USD  |  " + data.ripple.eur + " EUR\n" +
+                        "VELO : " + (data.velo ? data.velo.usd : "N/A") + " USD  |  " + (data.velo ? data.velo.eur : "N/A") + " EUR\n" +
+                        "NANO : " + data.nano.usd + " USD  |  " + data.nano.eur + " EUR";
 
                     const now = new Date();
                     document.getElementById("lastUpdate").innerText =
                         "Dernière synchro : " + now.toLocaleDateString() + " " + now.toLocaleTimeString();
-
                 })
                 .catch(() => {
                     document.getElementById("cryptoData").innerText = "Erreur de récupération des données";
