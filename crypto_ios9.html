@@ -1,9 +1,12 @@
+# Génération du contenu du fichier index.html avec les corrections demandées
+
+html_code = """
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cours Crypto - Compatibilité iOS9</title>
+<title>Cours Crypto</title>
 <style>
     body {
         background-color: black;
@@ -11,99 +14,61 @@
         font-family: Arial, sans-serif;
         text-align: center;
         margin: 0;
-        padding: 20px;
-    }
-    h1 {
-        font-size: 36px;
-        margin-bottom: 30px;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        flex-direction: column;
     }
     .crypto {
-        font-size: 80px;
-        font-weight: bold;
-        margin: 40px 0 10px 0;
+        font-size: 2.5rem;
+        margin: 15px 0;
     }
     .source {
-        font-size: 24px;
-        color: #ccc;
+        font-size: 1rem;
+        color: gray;
         margin-bottom: 20px;
     }
-    #lastUpdate {
-        margin-top: 30px;
-        font-size: 20px;
-        color: #888;
+    .sync {
+        font-size: 0.9rem;
+        margin-top: 20px;
+        color: #aaa;
     }
 </style>
 </head>
 <body>
-    <h1>Cours Crypto</h1>
-    <div id="cryptoData">Chargement...</div>
-    <div id="lastUpdate">Dernière synchro : en attente...</div>
+    <div class="crypto">XRP : <span id="xrp">0.00</span> USD</div>
+    <div class="crypto">VELO : <span id="velo">0.00</span> USD</div>
+    <div class="crypto">NANO : <span id="nano">0.00</span> USD</div>
+    <div class="source">Source : CoinGecko</div>
+    <div class="sync" id="sync-time"></div>
 
 <script>
-function httpGet(url, callback){
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", url, true);
-    xhr.onreadystatechange = function(){
-        if(xhr.readyState === 4){
-            if(xhr.status === 200){
-                callback(null, JSON.parse(xhr.responseText));
-            } else {
-                callback(xhr.status);
-            }
-        }
-    };
-    xhr.send();
+async function getPrices() {
+    try {
+        let response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=ripple,velo,nano&vs_currencies=usd");
+        let data = await response.json();
+
+        document.getElementById("xrp").textContent = data.ripple.usd.toFixed(2);
+        document.getElementById("velo").textContent = data.velo.usd.toFixed(5);
+        document.getElementById("nano").textContent = data.nano.usd.toFixed(6);
+
+        document.getElementById("sync-time").textContent = "Dernière synchro : " + new Date().toLocaleString();
+    } catch (e) {
+        console.error("Erreur récupération prix :", e);
+    }
 }
-
-function updatePrices(){
-    var container = document.getElementById("cryptoData");
-    container.innerHTML = "Chargement...";
-
-    // --- COINGECKO ---
-    httpGet("https://api.coingecko.com/api/v3/simple/price?ids=ripple,velodrome-finance,nano&vs_currencies=usd", function(err, data1){
-        if(err){container.innerHTML="Erreur CoinGecko"; return;}
-        
-        // --- COINRANKING ---
-        httpGet("https://api.coinranking.com/v2/coins?symbols=XRP,VELO,NANO", function(err2, data2){
-            var html = "";
-
-            // XRP
-            var xrpCG = data1.ripple.usd;
-            var veloCG = data1["velodrome-finance"] ? data1["velodrome-finance"].usd : "N/A";
-            var nanoCG = data1.nano.usd;
-
-            var coins = (data2 && data2.data && data2.data.coins) ? data2.data.coins : [];
-            function findPrice(symbol){
-                for(var i=0;i<coins.length;i++){
-                    if(coins[i].symbol===symbol) return parseFloat(coins[i].price).toFixed(6);
-                }
-                return "N/A";
-            }
-
-            var xrpCR = findPrice("XRP");
-            var veloCR = findPrice("VELO");
-            var nanoCR = findPrice("NANO");
-
-            html += '<div class="crypto">XRP : '+xrpCR+' USD</div><div class="source">Coinranking</div>';
-            html += '<div class="crypto">XRP : '+xrpCG+' USD</div><div class="source">CoinGecko</div><hr>';
-
-            html += '<div class="crypto">VELO : '+veloCR+' USD</div><div class="source">Coinranking</div>';
-            html += '<div class="crypto">VELO : '+veloCG+' USD</div><div class="source">CoinGecko</div><hr>';
-
-            html += '<div class="crypto">NANO : '+nanoCR+' USD</div><div class="source">Coinranking</div>';
-            html += '<div class="crypto">NANO : '+nanoCG+' USD</div><div class="source">CoinGecko</div>';
-
-            container.innerHTML = html;
-
-            var now = new Date();
-            document.getElementById("lastUpdate").innerText = 
-                "Dernière synchro : " + now.toLocaleDateString() + " " + now.toLocaleTimeString();
-        });
-    });
-}
-
-updatePrices();
-setInterval(updatePrices, 30000);
+getPrices();
+setInterval(getPrices, 60000);
 </script>
 </body>
 </html>
+"""
+
+# Enregistrement du fichier
+file_path = '/mnt/data/index.html'
+with open(file_path, 'w', encoding='utf-8') as file:
+    file.write(html_code)
+
+file_path
