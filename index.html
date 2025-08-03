@@ -3,60 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Comparatif Crypto (CoinGecko vs Coinranking)</title>
+<title>Cours Crypto</title>
 <style>
     body {
-        background:#f5f5f5;
-        color:#000;
-        font-family:monospace;
-        margin:0;
-        padding:20px;
-        text-align:center;
-    }
-    h2 {
-        font-size:35px;
-        margin-bottom:20px;
-    }
-    table {
-        width: 80%;
-        margin: 0 auto;
-        border-collapse: collapse;
-        font-size: 24px;
-    }
-    th, td {
-        border: 1px solid #999;
-        padding: 10px;
+        background-color: white;
+        color: black;
+        font-family: Arial, sans-serif;
         text-align: center;
+        padding-top: 50px;
+    }
+    .crypto {
+        font-size: 80px;
+        font-weight: bold;
+        margin: 25px 0;
     }
     #lastUpdate {
-        margin-top:20px;
-        font-size:16px;
-        color:#555;
+        margin-top: 30px;
+        font-size: 18px;
+        color: gray;
     }
 </style>
 </head>
 <body>
-    <h2>Comparatif Crypto (CoinGecko vs Coinranking)</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Crypto</th>
-                <th>CoinGecko (USD)</th>
-                <th>Coinranking (USD)</th>
-            </tr>
-        </thead>
-        <tbody id="cryptoTable">
-            <tr><td colspan="3">Chargement...</td></tr>
-        </tbody>
-    </table>
-    <div id="lastUpdate">Dernière synchro : en attente...</div>
+<h1>Cours Crypto</h1>
+<div id="cryptoContainer">Chargement...</div>
+<div id="lastUpdate">Dernière synchro : en attente...</div>
 
 <script>
-async function getCoinGecko() {
-    const url = "https://api.coingecko.com/api/v3/simple/price?ids=ripple,velo,nano&vs_currencies=usd";
-    const res = await fetch(url);
-    return await res.json();
-}
+let useFallback = false;
+let failCount = 0;
+const maxFails = 5;
 
 async function getCoinRanking() {
     const proxy = "https://api.allorigins.win/get?url=";
@@ -66,46 +42,47 @@ async function getCoinRanking() {
     const coins = JSON.parse(data.contents).data.coins;
     const find = s => coins.find(c => c.symbol === s)?.price ?? "N/A";
     return {
-        XRP: find("XRP"),
-        VELO: find("VELO"),
-        NANO: find("NANO")
+        XRP: parseFloat(find("XRP")).toFixed(6),
+        VELO: parseFloat(find("VELO")).toFixed(6),
+        NANO: parseFloat(find("NANO")).toFixed(6)
     };
 }
 
-async function updatePrices() {
+async function getCoinGecko() {
+    const url = "https://api.coingecko.com/api/v3/simple/price?ids=ripple,velo,nano&vs_currencies=usd";
+    const res = await fetch(url);
+    const data = await res.json();
+    return {
+        XRP: data.ripple?.usd ?? "N/A",
+        VELO: data.velo?.usd ?? "N/A",
+        NANO: data.nano?.usd ?? "N/A"
+    };
+}
+
+async function updateCryptoPrices() {
     try {
-        const [cg, cr] = await Promise.all([getCoinGecko(), getCoinRanking()]);
-
-        let html = `
-        <tr>
-            <td>XRP</td>
-            <td>${cg.ripple?.usd ?? "N/A"}</td>
-            <td>${parseFloat(cr.XRP).toFixed(6)}</td>
-        </tr>
-        <tr>
-            <td>VELO</td>
-            <td>${cg.velo?.usd ?? "N/A"}</td>
-            <td>${parseFloat(cr.VELO).toFixed(6)}</td>
-        </tr>
-        <tr>
-            <td>NANO</td>
-            <td>${cg.nano?.usd ?? "N/A"}</td>
-            <td>${parseFloat(cr.NANO).toFixed(6)}</td>
-        </tr>`;
-
-        document.getElementById("cryptoTable").innerHTML = html;
+        const prices = useFallback ? await getCoinGecko() : await getCoinRanking();
+        document.getElementById("cryptoContainer").innerHTML = `
+            <div class="crypto">XRP : ${prices.XRP} USD</div>
+            <div class="crypto">VELO : ${prices.VELO} USD</div>
+            <div class="crypto">NANO : ${prices.NANO} USD</div>
+        `;
         document.getElementById("lastUpdate").innerText =
             "Dernière synchro : " + new Date().toLocaleString();
-
+        failCount = 0;
     } catch (err) {
-        document.getElementById("cryptoTable").innerHTML =
-            `<tr><td colspan="3">Erreur récupération données</td></tr>`;
-        console.error(err);
+        console.error("Erreur API:", err);
+        failCount++;
+        if (!useFallback && failCount >= maxFails) {
+            useFallback = true;
+            console.warn("Basculé sur CoinGecko (fallback).");
+        }
+        document.getElementById("cryptoContainer").innerText = "Erreur de récupération des données";
     }
 }
 
-updatePrices();
-setInterval(updatePrices, 30000);
+updateCryptoPrices();
+setInterval(updateCryptoPrices, 30000);
 </script>
 </body>
 </html>
