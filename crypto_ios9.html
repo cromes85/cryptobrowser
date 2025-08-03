@@ -1,6 +1,3 @@
-# Génération du contenu du fichier index.html avec les corrections demandées
-
-html_code = """
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -22,7 +19,7 @@ html_code = """
         flex-direction: column;
     }
     .crypto {
-        font-size: 2.5rem;
+        font-size: 70px;
         margin: 15px 0;
     }
     .source {
@@ -64,11 +61,3 @@ setInterval(getPrices, 60000);
 </script>
 </body>
 </html>
-"""
-
-# Enregistrement du fichier
-file_path = '/mnt/data/index.html'
-with open(file_path, 'w', encoding='utf-8') as file:
-    file.write(html_code)
-
-file_path
