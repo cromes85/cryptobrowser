@@ -3,49 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cours Crypto - Compatibilité iOS9</title>
+<title>Cours Crypto - iOS 9</title>
 <style>
-    body {
-        background-color: black;
-        color: white;
-        font-family: Arial, sans-serif;
-        text-align: center;
-        margin: 0;
-        padding: 20px;
-    }
-    h1 {
-        font-size: 36px;
-        margin-bottom: 30px;
-    }
-    .crypto {
-        font-size: 80px;
-        font-weight: bold;
-        margin: 40px 0 10px 0;
-    }
-    .source {
-        font-size: 24px;
-        color: #ccc;
-        margin-bottom: 20px;
-    }
-    #lastUpdate {
-        margin-top: 30px;
-        font-size: 20px;
-        color: #888;
-    }
+    body { background-color: black; color: white; font-family: Arial; text-align: center; margin: 0; padding: 20px; }
+    h1 { font-size: 36px; margin-bottom: 30px; }
+    .crypto { font-size: 65px; font-weight: bold; margin: 40px 0 10px; }
+    .source { font-size: 24px; color: #ccc; margin-bottom: 20px; }
+    #lastUpdate { margin-top: 30px; font-size: 20px; color: #888; }
+    hr { border: none; height: 2px; background: #444; margin: 20px 0; }
 </style>
 </head>
 <body>
     <h1>Cours Crypto</h1>
     <div id="cryptoData">Chargement...</div>
-    <div id="lastUpdate">Dernière synchro : en attente...</div>
+    <div id="lastUpdate">Dernière synchro : en attente…</div>
 
 <script>
 function httpGet(url, callback){
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);
     xhr.onreadystatechange = function(){
-        if(xhr.readyState === 4){
-            if(xhr.status === 200){
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
                 callback(null, JSON.parse(xhr.responseText));
             } else {
                 callback(xhr.status);
@@ -57,48 +36,24 @@ function httpGet(url, callback){
 
 function updatePrices(){
     var container = document.getElementById("cryptoData");
-    container.innerHTML = "Chargement...";
+    container.innerHTML = "Chargement…";
 
-    // --- COINGECKO ---
-    httpGet("https://api.coingecko.com/api/v3/simple/price?ids=ripple,velodrome-finance,nano&vs_currencies=usd", function(err, data1){
-        if(err){container.innerHTML="Erreur CoinGecko"; return;}
-        
-        // --- COINRANKING ---
-        httpGet("https://api.coinranking.com/v2/coins?symbols=XRP,VELO,NANO", function(err2, data2){
-            var html = "";
+    httpGet("https://api.coingecko.com/api/v3/simple/price?ids=ripple,velo,nano&vs_currencies=usd", function(err, data){
+        if (err) {
+            container.innerHTML = "Erreur CoinGecko";
+            return;
+        }
+        var xrp = data.ripple?.usd ?? "N/A";
+        var velo = data.velo?.usd ?? "N/A";
+        var nano = data.nano?.usd ?? "N/A";
 
-            // XRP
-            var xrpCG = data1.ripple.usd;
-            var veloCG = data1["velodrome-finance"] ? data1["velodrome-finance"].usd : "N/A";
-            var nanoCG = data1.nano.usd;
+        container.innerHTML = 
+            '<div class="crypto">XRP : ' + xrp + ' USD</div><div class="source">CoinGecko</div><hr>' +
+            '<div class="crypto">VELO : ' + velo + ' USD</div><div class="source">CoinGecko</div><hr>' +
+            '<div class="crypto">NANO : ' + nano + ' USD</div><div class="source">CoinGecko</div>';
 
-            var coins = (data2 && data2.data && data2.data.coins) ? data2.data.coins : [];
-            function findPrice(symbol){
-                for(var i=0;i<coins.length;i++){
-                    if(coins[i].symbol===symbol) return parseFloat(coins[i].price).toFixed(6);
-                }
-                return "N/A";
-            }
-
-            var xrpCR = findPrice("XRP");
-            var veloCR = findPrice("VELO");
-            var nanoCR = findPrice("NANO");
-
-            html += '<div class="crypto">XRP : '+xrpCR+' USD</div><div class="source">Coinranking</div>';
-            html += '<div class="crypto">XRP : '+xrpCG+' USD</div><div class="source">CoinGecko</div><hr>';
-
-            html += '<div class="crypto">VELO : '+veloCR+' USD</div><div class="source">Coinranking</div>';
-            html += '<div class="crypto">VELO : '+veloCG+' USD</div><div class="source">CoinGecko</div><hr>';
-
-            html += '<div class="crypto">NANO : '+nanoCR+' USD</div><div class="source">Coinranking</div>';
-            html += '<div class="crypto">NANO : '+nanoCG+' USD</div><div class="source">CoinGecko</div>';
-
-            container.innerHTML = html;
-
-            var now = new Date();
-            document.getElementById("lastUpdate").innerText = 
-                "Dernière synchro : " + now.toLocaleDateString() + " " + now.toLocaleTimeString();
-        });
+        document.getElementById("lastUpdate").innerText =
+            "Dernière synchro : " + new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString();
     });
 }
 
