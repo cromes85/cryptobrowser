@@ -84,13 +84,9 @@ function updatePrices(){
             var veloCR = findPrice("VELO");
             var nanoCR = findPrice("NANO");
 
-            html += '<div class="crypto">XRP : '+xrpCR+' USD</div><div class="source">Coinranking</div>';
+            
             html += '<div class="crypto">XRP : '+xrpCG+' USD</div><div class="source">CoinGecko</div><hr>';
-
-            html += '<div class="crypto">VELO : '+veloCR+' USD</div><div class="source">Coinranking</div>';
             html += '<div class="crypto">VELO : '+veloCG+' USD</div><div class="source">CoinGecko</div><hr>';
-
-            html += '<div class="crypto">NANO : '+nanoCR+' USD</div><div class="source">Coinranking</div>';
             html += '<div class="crypto">NANO : '+nanoCG+' USD</div><div class="source">CoinGecko</div>';
 
             container.innerHTML = html;
@@ -103,7 +99,7 @@ function updatePrices(){
 }
 
 updatePrices();
-setInterval(updatePrices, 30000);
+setInterval(updatePrices, 25000);
 </script>
 </body>
 </html>
