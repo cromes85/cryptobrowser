@@ -3,19 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cours Crypto</title>
+<title>Cours Crypto (XRP, VELO, NANO)</title>
 <style>
     body {
-        background-color: white;
-        color: black;
+        background-color: black;
+        color: white;
         font-family: Arial, sans-serif;
         text-align: center;
-        padding-top: 50px;
+        padding-top: 30px;
+    }
+    h1 {
+        font-size: 40px;
+        margin-bottom: 30px;
     }
     .crypto {
         font-size: 80px;
         font-weight: bold;
         margin: 25px 0;
+    }
+    .source {
+        font-size: 20px;
+        color: #aaa;
+        margin-bottom: 40px;
+    }
+    .arrow-up {
+        color: #00ff00;
+        font-size: 60px;
+        margin-left: 15px;
+    }
+    .arrow-down {
+        color: #ff3333;
+        font-size: 60px;
+        margin-left: 15px;
+    }
+    .arrow-same {
+        color: #aaa;
+        font-size: 60px;
+        margin-left: 15px;
     }
     #lastUpdate {
         margin-top: 30px;
@@ -30,9 +54,7 @@
 <div id="lastUpdate">Dernière synchro : en attente...</div>
 
 <script>
-let useFallback = false;
-let failCount = 0;
-const maxFails = 5;
+let previousPrices = { XRP: null, VELO: null, NANO: null };
 
 async function getCoinRanking() {
     const proxy = "https://api.allorigins.win/get?url=";
@@ -59,24 +81,36 @@ async function getCoinGecko() {
     };
 }
 
+function getArrow(symbol, currentPrice) {
+    if (previousPrices[symbol] === null) return '<span class="arrow-same">–</span>';
+    if (currentPrice > previousPrices[symbol]) return '<span class="arrow-up">⬆️</span>';
+    if (currentPrice < previousPrices[symbol]) return '<span class="arrow-down">⬇️</span>';
+    return '<span class="arrow-same">–</span>';
+}
+
 async function updateCryptoPrices() {
     try {
-        const prices = useFallback ? await getCoinGecko() : await getCoinRanking();
-        document.getElementById("cryptoContainer").innerHTML = `
-            <div class="crypto">XRP : ${prices.XRP} USD</div>
-            <div class="crypto">VELO : ${prices.VELO} USD</div>
-            <div class="crypto">NANO : ${prices.NANO} USD</div>
-        `;
+        const [rankingPrices, geckoPrices] = await Promise.all([getCoinRanking(), getCoinGecko()]);
+
+        const html = Object.keys(rankingPrices).map(symbol => {
+            let price = parseFloat(rankingPrices[symbol]);
+            let arrow = getArrow(symbol, price);
+            previousPrices[symbol] = price;
+
+            return `
+                <div class="crypto">${symbol} : ${price} USD ${arrow}</div>
+                <div class="source">Coinranking</div>
+                <div class="crypto">${symbol} : ${geckoPrices[symbol]} USD</div>
+                <div class="source">CoinGecko</div>
+                <hr style="border: 1px solid #555; width: 60%; margin: 20px auto;">
+            `;
+        }).join("");
+
+        document.getElementById("cryptoContainer").innerHTML = html;
         document.getElementById("lastUpdate").innerText =
             "Dernière synchro : " + new Date().toLocaleString();
-        failCount = 0;
     } catch (err) {
         console.error("Erreur API:", err);
-        failCount++;
-        if (!useFallback && failCount >= maxFails) {
-            useFallback = true;
-            console.warn("Basculé sur CoinGecko (fallback).");
-        }
         document.getElementById("cryptoContainer").innerText = "Erreur de récupération des données";
     }
 }
