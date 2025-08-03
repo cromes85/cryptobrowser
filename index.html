@@ -10,41 +10,47 @@
         color: white;
         font-family: Arial, sans-serif;
         text-align: center;
-        padding-top: 30px;
+        margin: 0;
+        padding: 10px;
     }
     h1 {
-        font-size: 40px;
-        margin-bottom: 30px;
+        font-size: 28px;
+        margin-bottom: 15px;
     }
     .crypto {
-        font-size: 80px;
+        font-size: 50px;
         font-weight: bold;
-        margin: 25px 0;
+        margin: 8px 0;
     }
     .source {
-        font-size: 20px;
+        font-size: 16px;
         color: #aaa;
-        margin-bottom: 40px;
+        margin-bottom: 10px;
     }
     .arrow-up {
         color: #00ff00;
-        font-size: 60px;
-        margin-left: 15px;
+        font-size: 40px;
+        margin-left: 10px;
     }
     .arrow-down {
         color: #ff3333;
-        font-size: 60px;
-        margin-left: 15px;
+        font-size: 40px;
+        margin-left: 10px;
     }
     .arrow-same {
         color: #aaa;
-        font-size: 60px;
-        margin-left: 15px;
+        font-size: 40px;
+        margin-left: 10px;
     }
     #lastUpdate {
-        margin-top: 30px;
-        font-size: 18px;
+        margin-top: 15px;
+        font-size: 16px;
         color: gray;
+    }
+    hr {
+        border: 1px solid #444;
+        width: 80%;
+        margin: 10px auto;
     }
 </style>
 </head>
@@ -102,7 +108,7 @@ async function updateCryptoPrices() {
                 <div class="source">Coinranking</div>
                 <div class="crypto">${symbol} : ${geckoPrices[symbol]} USD</div>
                 <div class="source">CoinGecko</div>
-                <hr style="border: 1px solid #555; width: 60%; margin: 20px auto;">
+                <hr>
             `;
         }).join("");
 
