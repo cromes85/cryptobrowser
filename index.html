@@ -3,146 +3,109 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cours Crypto</title>
+<title>Comparatif Crypto (CoinGecko vs Coinranking)</title>
 <style>
     body {
-        background-color: white;
-        color: black;
-        font-family: Arial, sans-serif;
+        background:#f5f5f5;
+        color:#000;
+        font-family:monospace;
+        margin:0;
+        padding:20px;
+        text-align:center;
+    }
+    h2 {
+        font-size:35px;
+        margin-bottom:20px;
+    }
+    table {
+        width: 80%;
+        margin: 0 auto;
+        border-collapse: collapse;
+        font-size: 24px;
+    }
+    th, td {
+        border: 1px solid #999;
+        padding: 10px;
         text-align: center;
-        padding-top: 50px;
-        margin: 0;
-    }
-    h1 {
-        font-size: 40px;
-        margin-bottom: 20px;
-    }
-    .cryptoBlock {
-        font-size: 70px;
-        font-weight: bold;
-        margin: 20px 0;
-        line-height: 1.2em;
-    }
-    .previous {
-        font-size: 20px;
-        color: gray;
-        margin-top: 5px;
-        font-weight: normal;
     }
     #lastUpdate {
-        margin-top: 30px;
-        font-size: 20px;
-        color: gray;
-        display: block;
-    }
-    button {
-        position: fixed;
-        bottom: 10px;
-        right: 10px;
-        padding: 12px 20px;
-        background-color: #ccc;
-        border: none;
-        cursor: pointer;
-        border-radius: 5px;
-        font-size: 16px;
+        margin-top:20px;
+        font-size:16px;
+        color:#555;
     }
 </style>
 </head>
 <body>
-<h1>Cours Crypto</h1>
-<div id="cryptoData">Chargement...</div>
-<div id="lastUpdate">Dernière synchro : en attente...</div>
-<button onclick="toggleMode()">Mode Bourse</button>
+    <h2>Comparatif Crypto (CoinGecko vs Coinranking)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Crypto</th>
+                <th>CoinGecko (USD)</th>
+                <th>Coinranking (USD)</th>
+            </tr>
+        </thead>
+        <tbody id="cryptoTable">
+            <tr><td colspan="3">Chargement...</td></tr>
+        </tbody>
+    </table>
+    <div id="lastUpdate">Dernière synchro : en attente...</div>
 
 <script>
-let useFallback = false;
-let failCount = 0;
-const maxFails = 10;
-
-// Historique des valeurs précédentes
-let previousPrices = { XRP: null, VELO: null, NANO: null };
-
-function fetchCoinranking() {
-    const apiUrl = "https://api.coinranking.com/v2/coins?symbols=XRP,VELO,NANO";
-    const proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(apiUrl);
-
-    return fetch(proxyUrl)
-        .then(res => res.json())
-        .then(wrapper => {
-            if (!wrapper || !wrapper.contents) throw new Error("Réponse vide Coinranking");
-            const coins = JSON.parse(wrapper.contents).data.coins;
-            const find = sym => coins.find(c => c.symbol === sym) || {};
-            return {
-                XRP: parseFloat(find("XRP").price).toFixed(6),
-                VELO: parseFloat(find("VELO").price).toFixed(6),
-                NANO: parseFloat(find("NANO").price).toFixed(6)
-            };
-        });
+async function getCoinGecko() {
+    const url = "https://api.coingecko.com/api/v3/simple/price?ids=ripple,velo,nano&vs_currencies=usd";
+    const res = await fetch(url);
+    return await res.json();
 }
 
-function fetchCoinGecko() {
-    const apiUrl = "https://api.coingecko.com/api/v3/simple/price?ids=ripple,velodrome-finance,nano&vs_currencies=usd";
-    const proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(apiUrl);
-
-    return fetch(proxyUrl)
-        .then(res => res.json())
-        .then(wrapper => {
-            if (!wrapper || !wrapper.contents) throw new Error("Réponse vide CoinGecko");
-            const data = JSON.parse(wrapper.contents);
-            return {
-                XRP: data.ripple?.usd ?? "N/A",
-                VELO: data["velodrome-finance"]?.usd ?? "N/A",
-                NANO: data.nano?.usd ?? "N/A"
-            };
-        });
+async function getCoinRanking() {
+    const proxy = "https://api.allorigins.win/get?url=";
+    const api = "https://api.coinranking.com/v2/coins?symbols=XRP,VELO,NANO";
+    const res = await fetch(proxy + encodeURIComponent(api));
+    const data = await res.json();
+    const coins = JSON.parse(data.contents).data.coins;
+    const find = s => coins.find(c => c.symbol === s)?.price ?? "N/A";
+    return {
+        XRP: find("XRP"),
+        VELO: find("VELO"),
+        NANO: find("NANO")
+    };
 }
 
-function updateCryptoPrices() {
-    (useFallback ? fetchCoinGecko() : fetchCoinranking())
-    .then(prices => {
-        let html = "";
+async function updatePrices() {
+    try {
+        const [cg, cr] = await Promise.all([getCoinGecko(), getCoinRanking()]);
 
-        for (let key in prices) {
-            html += `<div class="cryptoBlock">${key} : ${prices[key]} USD`;
-            if (previousPrices[key] !== null) {
-                html += `<div class="previous">Précédent : ${previousPrices[key]} USD</div>`;
-            }
-            html += `</div>`;
+        let html = `
+        <tr>
+            <td>XRP</td>
+            <td>${cg.ripple?.usd ?? "N/A"}</td>
+            <td>${parseFloat(cr.XRP).toFixed(6)}</td>
+        </tr>
+        <tr>
+            <td>VELO</td>
+            <td>${cg.velo?.usd ?? "N/A"}</td>
+            <td>${parseFloat(cr.VELO).toFixed(6)}</td>
+        </tr>
+        <tr>
+            <td>NANO</td>
+            <td>${cg.nano?.usd ?? "N/A"}</td>
+            <td>${parseFloat(cr.NANO).toFixed(6)}</td>
+        </tr>`;
 
-            // Mise à jour de l'historique
-            previousPrices[key] = prices[key];
-        }
-
-        document.getElementById("cryptoData").innerHTML = html;
+        document.getElementById("cryptoTable").innerHTML = html;
         document.getElementById("lastUpdate").innerText =
-            "Dernière synchro : " + new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString();
+            "Dernière synchro : " + new Date().toLocaleString();
 
-        if (useFallback && failCount === 0) {
-            console.log("Retour à CoinRanking : service à nouveau fonctionnel.");
-            useFallback = false;
-        }
-        failCount = 0;
-    })
-    .catch(err => {
-        console.error("Erreur API:", err);
-        failCount++;
-        if (!useFallback && failCount >= maxFails) {
-            console.warn("Coinranking échoue trop souvent, passage à CoinGecko.");
-            useFallback = true;
-        }
-        document.getElementById("cryptoData").innerText = "Erreur de récupération des données";
-    });
+    } catch (err) {
+        document.getElementById("cryptoTable").innerHTML =
+            `<tr><td colspan="3">Erreur récupération données</td></tr>`;
+        console.error(err);
+    }
 }
 
-function toggleMode() {
-    document.body.style.backgroundColor = 
-        document.body.style.backgroundColor === "white" ? "black" : "white";
-    document.body.style.color =
-        document.body.style.color === "black" ? "white" : "black";
-}
-
-setInterval(updateCryptoPrices, 20000);
-updateCryptoPrices();
+updatePrices();
+setInterval(updatePrices, 30000);
 </script>
 </body>
 </html>
